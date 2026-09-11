@@ -4,6 +4,7 @@ import { ToolBar } from "./ToolBar";
 import { SidePanel } from "./SidePanel";
 import { StatusBar } from "./StatusBar";
 import { AlignmentViewer } from "../alignment/AlignmentViewer";
+import { WorkflowMonitor } from "../workflow/WorkflowMonitor";
 
 interface MainWindowProps {
   darkMode: boolean;
@@ -19,6 +20,7 @@ interface MainWindowProps {
   showGrid: boolean;
   activeTab: string;
   status: AppStatus;
+  workflowId?: string;
   onToggleTheme: () => void;
   onToggleSidebar: () => void;
   onToggleInspector: () => void;
@@ -122,6 +124,7 @@ export function MainWindow(props: MainWindowProps) {
               </div>
               <span className="task-state">Completed</span>
             </div>
+            <WorkflowMonitor workflowId={props.workflowId} />
           </div>
         </main>
 

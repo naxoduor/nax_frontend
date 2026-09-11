@@ -72,6 +72,7 @@ function parseSequenceFile(content: string, fileName: string): Sequence[] {
 
 export function Workspace() {
   const [state, setState] = useState(initialProjectState);
+  const [workflowId, setWorkflowId] = useState<string>();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -231,6 +232,7 @@ export function Workspace() {
 
     try {
       const response = await api.transferWorkflowSchema(workflow);
+      if (response.taskId) setWorkflowId(response.taskId);
       const message = response.taskId
         ? `Workflow task ${response.taskId} accepted by backend`
         : response.message ?? "Workflow transferred to Java backend";
@@ -303,6 +305,7 @@ export function Workspace() {
         showGrid={state.showGrid}
         activeTab="BRCA1_MSA.aln"
         status={state.status}
+        workflowId={workflowId}
         onToggleTheme={() =>
           setState((current) => ({
             ...current,
