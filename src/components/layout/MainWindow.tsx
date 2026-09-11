@@ -33,6 +33,7 @@ interface MainWindowProps {
   onImport: () => void;
   onAlign: () => void;
   onAnalyze: () => void;
+  onTransferWorkflow: () => void;
   onAction: (message: string) => void;
   onOpenInspector: () => void;
 }
@@ -58,6 +59,7 @@ export function MainWindow(props: MainWindowProps) {
         onImport={props.onImport}
         onAlign={props.onAlign}
         onAnalyze={props.onAnalyze}
+        onTransferWorkflow={props.onTransferWorkflow}
         onAction={props.onAction}
       />
 

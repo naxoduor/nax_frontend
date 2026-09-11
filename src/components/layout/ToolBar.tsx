@@ -21,6 +21,7 @@ interface ToolBarProps {
   onImport: () => void;
   onAlign: () => void;
   onAnalyze: () => void;
+  onTransferWorkflow: () => void;
   onAction: (message: string) => void;
 }
 
@@ -50,6 +51,7 @@ export function ToolBar({
   onImport,
   onAlign,
   onAnalyze,
+  onTransferWorkflow,
   onAction,
 }: ToolBarProps) {
   return (
@@ -100,8 +102,8 @@ export function ToolBar({
         />
         <ToolButton
           icon={<GitBranch size={16} />}
-          label="Phylogeny"
-          onClick={() => onAction("Phylogenetic analysis opened")}
+          label="Workflow"
+          onClick={onTransferWorkflow}
         />
         <ToolButton
           icon={<BarChart3 size={16} />}

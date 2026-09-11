@@ -30,7 +30,8 @@ Then open the local URL printed by Vite.
 
 ## Backend integration
 
-The UI is intentionally frontend-only. Replace the demo data/actions in `src/App.tsx` with calls to your Django/FastAPI backend.
+Set `VITE_API_BASE_URL` to the Java backend base URL to enable REST integration. Without it,
+the alignment action uses the local demo simulator.
 
 Suggested API endpoints:
 
@@ -41,5 +42,10 @@ Suggested API endpoints:
 - `POST /api/analysis`
 - `GET /api/tasks/:id`
 - `GET /api/files/:id`
+- `POST /api/ugene/schema/transfer`
+
+The UGENE transfer endpoint receives a versioned JSON envelope. For a synchronous response,
+return `{ "status": "completed", "sequences": [] }`. For an asynchronous response, return
+`{ "status": "accepted", "taskId": "..." }`.
 
 For Clustal Omega/MAFFT/Kalign, the browser should submit a task to the backend rather than executing binaries directly.

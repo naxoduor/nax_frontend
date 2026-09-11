@@ -4,6 +4,8 @@ import { AlignDialog } from "../components/dialogs/AlignDialog";
 import { AnalysisDialog } from "../components/dialogs/AnalysisDialog";
 import { initialProjectState } from "../store/projectStore";
 import { simulateAlignment, gcContent } from "../services/alignment";
+import { api, isBackendConfigured } from "../services/api";
+import { workflow } from "../types/bioinformatics";
 import type {
   AlignmentOptions,
   AnalysisOptions,
@@ -132,7 +134,42 @@ export function Workspace() {
       },
     }));
 
-    const aligned = await simulateAlignment(selectedSequences, options);
+    let aligned: Sequence[];
+
+    if (isBackendConfigured) {
+      try {
+        const response = await api.transferUgeneSchema({
+          schemaVersion: "1.0",
+          operation: "ALIGNMENT",
+          sequences: selectedSequences,
+          options,
+        });
+
+        if (response.status === "accepted") {
+          setStatus(
+            response.taskId
+              ? `Alignment task ${response.taskId} accepted by backend`
+              : "Alignment task accepted by backend",
+            "success",
+          );
+          return;
+        }
+
+        if (!response.sequences?.length) {
+          throw new Error("Backend returned no aligned sequences");
+        }
+
+        aligned = response.sequences;
+      } catch (error) {
+        setStatus(
+          error instanceof Error ? error.message : "Backend alignment failed",
+          "error",
+        );
+        return;
+      }
+    } else {
+      aligned = await simulateAlignment(selectedSequences, options);
+    }
 
     setState((current) => {
       const ids = new Set(aligned.map((sequence) => sequence.id));
@@ -182,6 +219,29 @@ export function Workspace() {
     }));
 
     window.setTimeout(() => setStatus("Ready", "ready"), 2500);
+  };
+
+  const handleWorkflowTransfer = async () => {
+    if (!isBackendConfigured) {
+      handleAction("Configure VITE_API_BASE_URL to transfer workflow");
+      return;
+    }
+
+    setStatus("Transferring workflow to Java backend...", "running");
+
+    try {
+      const response = await api.transferWorkflowSchema(workflow);
+      const message = response.taskId
+        ? `Workflow task ${response.taskId} accepted by backend`
+        : response.message ?? "Workflow transferred to Java backend";
+
+      setStatus(message, "success");
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : "Workflow transfer failed",
+        "error",
+      );
+    }
   };
 
   const handleFile = async (file: File) => {
@@ -278,6 +338,7 @@ export function Workspace() {
         onImport={handleImport}
         onAlign={() => setDialog("align")}
         onAnalyze={() => setDialog("analysis")}
+        onTransferWorkflow={handleWorkflowTransfer}
         onAction={handleAction}
         onOpenInspector={() => setInspectorOpen(true)}
       />

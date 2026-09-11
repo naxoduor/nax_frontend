@@ -3,9 +3,14 @@ import type {
   AnalysisOptions,
   ProjectNode,
   Sequence,
+  UgeneSchemaTransferRequest,
+  UgeneSchemaTransferResponse,
+  WorkflowSchema,
+  WorkflowTransferResponse,
 } from "../types/bioinformatics"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+export const isBackendConfigured = Boolean(import.meta.env.VITE_API_BASE_URL);
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -49,6 +54,18 @@ export const api = {
       body: JSON.stringify({ sequenceIds, options }),
     }),
 
+  transferUgeneSchema: (payload: UgeneSchemaTransferRequest) =>
+    request<UgeneSchemaTransferResponse>("/ugene/schema/transfer", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  transferWorkflowSchema: (payload: WorkflowSchema) =>
+    request<WorkflowTransferResponse>("/ugene/schema/transfer", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
   uploadFile: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -64,4 +81,4 @@ export const api = {
 
     return response.json() as Promise<ProjectNode>;
   },
-};''',
+};

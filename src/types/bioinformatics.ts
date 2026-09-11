@@ -5,7 +5,15 @@ export interface Sequence {
   type: SequenceType;
 }
 
-export type ProjectNodeType = "folder" | "sequence" | "alignment" | "bam" | "vcf";
+export type SequenceType = "DNA" | "RNA" | "PROTEIN";
+
+export type ProjectNodeType = "folder" | "sequence" | "alignment" | "bam"
+
+
+
+
+
+ | "vcf";
 
 export interface ProjectNode {
   id: string;
@@ -31,8 +39,80 @@ export interface AnalysisOptions {
   analysis: "Consensus" | "Conservation" | "Translation" | "GC Content";
 }
 
+export interface UgeneSchemaTransferRequest {
+  schemaVersion: "1.0";
+  operation: "ALIGNMENT";
+  sequences: Sequence[];
+  options: AlignmentOptions;
+}
+
+export interface UgeneSchemaTransferResponse {
+  status: "completed" | "accepted";
+  taskId?: string;
+  sequences?: Sequence[];
+  message?: string;
+}
+
+export interface PortSchema {
+  id: string;
+  name?: string;
+  type: string;
+}
+
+export interface NodeSchema {
+  id: string;
+  type: string;
+  inputs: PortSchema[];
+  outputs: PortSchema[];
+}
+
+export interface ConnectionSchema {
+  id?: string;
+  sourceNode: string;
+  sourcePort: string;
+  targetNode: string;
+  targetPort: string;
+}
+
+export interface WorkflowSchema {
+  nodes: NodeSchema[];
+  connections: ConnectionSchema[];
+}
+
+export interface WorkflowTransferResponse {
+  status: "completed" | "accepted";
+  taskId?: string;
+  message?: string;
+}
+
+export const workflow: WorkflowSchema = {
+  nodes: [
+    {
+      id: "reader",
+      type: "SequenceReader",
+      inputs: [],
+      outputs: [{ id: "sequence", type: "Sequence" }],
+    },
+    {
+      id: "analysis",
+      type: "BioconductorWorker",
+      inputs: [{ id: "sequence", type: "Sequence" }],
+      outputs: [{ id: "result", type: "AnalysisResult" }],
+    },
+  ],
+  connections: [
+    {
+      sourceNode: "reader",
+      sourcePort: "sequence",
+      targetNode: "analysis",
+      targetPort: "sequence",
+    },
+  ],
+};
+
 export interface AppStatus {
   message: string;
   kind: "ready" | "running" | "success" | "error";
+}
 
 
