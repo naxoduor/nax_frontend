@@ -248,6 +248,13 @@ export function Workspace() {
 
   const handleFile = async (file: File) => {
     try {
+      if (isBackendConfigured) {
+        setStatus("Uploading file 0%...", "running");
+        await api.uploadFile(file, (progress) => {
+          setStatus(`Uploading file ${Math.round(progress)}%...`, "running");
+        });
+      }
+
       const content = await file.text();
       const sequences = parseSequenceFile(content, file.name);
 
@@ -268,8 +275,11 @@ export function Workspace() {
       }));
 
       window.setTimeout(() => setStatus("Ready", "ready"), 2500);
-    } catch {
-      setStatus("Could not read sequence file", "error");
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : "File import failed",
+        "error",
+      );
     }
   };
 

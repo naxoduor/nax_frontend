@@ -11,6 +11,7 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 export const isBackendConfigured = Boolean(import.meta.env.VITE_API_BASE_URL);
+const CHUNK_SIZE = 5 * 1024 * 1024;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -66,19 +67,48 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
-  uploadFile: async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await fetch(`${API_BASE_URL}/files`, {
+  uploadFile: async (file: File, onProgress: (progress: number) => void) => {
+    const createResponse = await fetch(`${API_BASE_URL}/uploads`, {
       method: "POST",
-      body: formData,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileSize: file.size,
+        chunkSize: CHUNK_SIZE,
+      }),
     });
 
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.status}`);
+    if (!createResponse.ok) {
+      throw new Error(`Upload initialization failed: ${createResponse.status}`);
     }
 
-    return response.json() as Promise<ProjectNode>;
+    const upload = (await createResponse.json()) as { uploadId?: string };
+    if (!upload.uploadId) {
+      throw new Error("Upload initialization did not return an upload ID");
+    }
+
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+    for (let chunkNumber = 0; chunkNumber < totalChunks; chunkNumber += 1) {
+      const start = chunkNumber * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, file.size);
+      const response = await fetch(
+        `${API_BASE_URL}/uploads/${encodeURIComponent(upload.uploadId)}/chunks/${chunkNumber}`,
+        {
+          method: "POST",
+          body: file.slice(start, end),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Upload chunk failed: ${response.status}`);
+      }
+
+      onProgress(((chunkNumber + 1) / totalChunks) * 100);
+    }
+
+    return upload.uploadId;
   },
 };
