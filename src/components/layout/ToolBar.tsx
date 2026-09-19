@@ -22,6 +22,7 @@ interface ToolBarProps {
   onAlign: () => void;
   onAnalyze: () => void;
   onTransferWorkflow: () => void;
+  onOpenWorkflow: () => void;
   onAction: (message: string) => void;
 }
 
@@ -52,6 +53,7 @@ export function ToolBar({
   onAlign,
   onAnalyze,
   onTransferWorkflow,
+  onOpenWorkflow,
   onAction,
 }: ToolBarProps) {
   return (
@@ -103,7 +105,7 @@ export function ToolBar({
         <ToolButton
           icon={<GitBranch size={16} />}
           label="Workflow"
-          onClick={onTransferWorkflow}
+          onClick={onOpenWorkflow}
         />
         <ToolButton
           icon={<BarChart3 size={16} />}

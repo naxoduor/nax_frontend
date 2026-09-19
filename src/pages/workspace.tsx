@@ -5,7 +5,7 @@ import { AnalysisDialog } from "../components/dialogs/AnalysisDialog";
 import { initialProjectState } from "../store/projectStore";
 import { simulateAlignment, gcContent } from "../services/alignment";
 import { api, isBackendConfigured } from "../services/api";
-import { workflow } from "../types/bioinformatics";
+import { workflow as initialWorkflow } from "../types/bioinformatics";
 import type {
   AlignmentOptions,
   AnalysisOptions,
@@ -13,6 +13,7 @@ import type {
   ProjectNode,
   SelectionRange,
   Sequence,
+  WorkflowSchema,
 } from "../types/bioinformatics";
 import { useCallback, useMemo, useState } from "react";
 
@@ -73,6 +74,8 @@ function parseSequenceFile(content: string, fileName: string): Sequence[] {
 export function Workspace() {
   const [state, setState] = useState(initialProjectState);
   const [workflowId, setWorkflowId] = useState<string>();
+  const [workflowDraft, setWorkflowDraft] = useState<WorkflowSchema>(initialWorkflow);
+  const [workflowOpen, setWorkflowOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -231,7 +234,7 @@ export function Workspace() {
     setStatus("Transferring workflow to Java backend...", "running");
 
     try {
-      const response = await api.transferWorkflowSchema(workflow);
+      const response = await api.transferWorkflowSchema(workflowDraft);
       if (response.taskId) setWorkflowId(response.taskId);
       const message = response.taskId
         ? `Workflow task ${response.taskId} accepted by backend`
@@ -316,6 +319,8 @@ export function Workspace() {
         activeTab="BRCA1_MSA.aln"
         status={state.status}
         workflowId={workflowId}
+        workflow={workflowDraft}
+        workflowOpen={workflowOpen}
         onToggleTheme={() =>
           setState((current) => ({
             ...current,
@@ -352,6 +357,8 @@ export function Workspace() {
         onAlign={() => setDialog("align")}
         onAnalyze={() => setDialog("analysis")}
         onTransferWorkflow={handleWorkflowTransfer}
+        onOpenWorkflow={() => setWorkflowOpen(true)}
+        onWorkflowChange={setWorkflowDraft}
         onAction={handleAction}
         onOpenInspector={() => setInspectorOpen(true)}
       />

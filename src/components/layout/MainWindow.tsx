@@ -1,10 +1,11 @@
-import type { AppStatus, ProjectNode, Sequence, SelectionRange } from "../../types/bioinformatics"
+import type { AppStatus, ProjectNode, Sequence, SelectionRange, WorkflowSchema } from "../../types/bioinformatics"
 import { MenuBar } from "./MenuBar";
 import { ToolBar } from "./ToolBar";
 import { SidePanel } from "./SidePanel";
 import { StatusBar } from "./StatusBar";
 import { AlignmentViewer } from "../alignment/AlignmentViewer";
 import { WorkflowMonitor } from "../workflow/WorkflowMonitor";
+import { WorkflowEditor } from "../workflow/WorkflowEditor";
 
 interface MainWindowProps {
   darkMode: boolean;
@@ -21,6 +22,8 @@ interface MainWindowProps {
   activeTab: string;
   status: AppStatus;
   workflowId?: string;
+  workflow: WorkflowSchema;
+  workflowOpen: boolean;
   onToggleTheme: () => void;
   onToggleSidebar: () => void;
   onToggleInspector: () => void;
@@ -36,6 +39,8 @@ interface MainWindowProps {
   onAlign: () => void;
   onAnalyze: () => void;
   onTransferWorkflow: () => void;
+  onOpenWorkflow: () => void;
+  onWorkflowChange: (workflow: WorkflowSchema) => void;
   onAction: (message: string) => void;
   onOpenInspector: () => void;
 }
@@ -62,6 +67,7 @@ export function MainWindow(props: MainWindowProps) {
         onAlign={props.onAlign}
         onAnalyze={props.onAnalyze}
         onTransferWorkflow={props.onTransferWorkflow}
+        onOpenWorkflow={props.onOpenWorkflow}
         onAction={props.onAction}
       />
 
@@ -86,6 +92,10 @@ export function MainWindow(props: MainWindowProps) {
                 {props.activeTab}
                 <span className="tab-close">×</span>
               </button>
+              <button className={`tab ${props.workflowOpen ? "active" : ""}`} onClick={props.onOpenWorkflow}>
+                Workflow
+                <span className="tab-close">×</span>
+              </button>
               <button className="tab">
                 Results
                 <span className="tab-close">×</span>
@@ -93,7 +103,9 @@ export function MainWindow(props: MainWindowProps) {
             </div>
           </div>
 
-          <AlignmentViewer
+          {props.workflowOpen ? (
+            <WorkflowEditor workflow={props.workflow} onChange={props.onWorkflowChange} onTransfer={props.onTransferWorkflow} />
+          ) : <AlignmentViewer
             sequences={props.sequences}
             selectedSequenceIds={props.selectedSequenceIds}
             selection={props.selection}
@@ -105,7 +117,7 @@ export function MainWindow(props: MainWindowProps) {
             onToggleConsensus={props.onToggleConsensus}
             onToggleGrid={props.onToggleGrid}
             onAction={props.onAction}
-          />
+          />}
 
           <div className="bottom-panel">
             <div className="bottom-tabs">
