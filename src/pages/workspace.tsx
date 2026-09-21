@@ -226,14 +226,16 @@ export function Workspace() {
   };
 
   const handleWorkflowTransfer = async () => {
-    if (!isBackendConfigured) {
-      handleAction("Configure VITE_API_BASE_URL to transfer workflow");
-      return;
-    }
+    console.log("Transferring workflow to Java backend", workflowDraft);
+    // if (!isBackendConfigured) {
+    //   handleAction("Configure VITE_API_BASE_URL to transfer workflow");
+    //   return;
+    // }
 
     setStatus("Transferring workflow to Java backend...", "running");
 
     try {
+      console.log("Sending workflowDraft to backend", workflowDraft);
       const response = await api.transferWorkflowSchema(workflowDraft);
       if (response.taskId) setWorkflowId(response.taskId);
       const message = response.taskId

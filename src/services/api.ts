@@ -9,7 +9,8 @@ import type {
   WorkflowTransferResponse,
 } from "../types/bioinformatics"
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const API_BASE_URL = "http://localhost:8080/api"; // Hardcoded for local development
 export const isBackendConfigured = Boolean(import.meta.env.VITE_API_BASE_URL);
 const CHUNK_SIZE = 5 * 1024 * 1024;
 
@@ -55,17 +56,41 @@ export const api = {
       body: JSON.stringify({ sequenceIds, options }),
     }),
 
-  transferUgeneSchema: (payload: UgeneSchemaTransferRequest) =>
-    request<UgeneSchemaTransferResponse>("/ugene/schema/transfer", {
+  transferUgeneSchema: async (payload: UgeneSchemaTransferRequest) => {
+    console.log("send payload to backeend", payload)
+    const response = await fetch(`${API_BASE_URL}/workflows`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(payload),
-    }),
+    });
 
-  transferWorkflowSchema: (payload: WorkflowSchema) =>
-    request<WorkflowTransferResponse>("/ugene/schema/transfer", {
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
+    return response.json() as Promise<UgeneSchemaTransferResponse>;
+  },
+
+  transferWorkflowSchema: async (payload: WorkflowSchema) => {
+    console.log("send payload to backeend", payload)
+    const response = await fetch(`${API_BASE_URL}/workflows`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(payload),
-    }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+  },
+    // request<WorkflowTransferResponse>("/ugene/schema/transfer", {
+    //   method: "POST",
+    //   body: JSON.stringify(payload),
+    // }),
 
   uploadFile: async (file: File, onProgress: (progress: number) => void) => {
     const createResponse = await fetch(`${API_BASE_URL}/uploads`, {

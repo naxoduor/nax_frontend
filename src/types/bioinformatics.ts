@@ -53,7 +53,7 @@ export interface UgeneSchemaTransferResponse {
   message?: string;
 }
 
-export interface PortSchema {
+export interface aPortSchema {
   id: string;
   name?: string;
   type: string;
@@ -63,7 +63,7 @@ export interface NodeSchema {
   id: string;
   type: string;
   inputs: PortSchema[];
-  outputs: PortSchema[];
+  outputs: P ortSchema[];
 }
 
 export interface ConnectionSchema {

@@ -7,7 +7,7 @@ interface WorkflowEditorProps {
   onTransfer: () => void;
 }
 
-const nodeTypes = ["SequenceReader", "BioconductorWorker", "AlignmentWorker", "SequenceWriter"];
+const nodeTypes = ["SequenceReader", "AlignmentWorker", "ParserWorker"];
 
 export function WorkflowEditor({ workflow, onChange, onTransfer }: WorkflowEditorProps) {
   const updateNode = (nodeId: string, patch: Partial<NodeSchema>) => {
