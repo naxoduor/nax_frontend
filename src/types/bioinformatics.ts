@@ -53,7 +53,7 @@ export interface UgeneSchemaTransferResponse {
   message?: string;
 }
 
-export interface aPortSchema {
+export interface PortSchema {
   id: string;
   name?: string;
   type: string;
@@ -63,7 +63,7 @@ export interface NodeSchema {
   id: string;
   type: string;
   inputs: PortSchema[];
-  outputs: P ortSchema[];
+  outputs: PortSchema[];
 }
 
 export interface ConnectionSchema {
@@ -94,19 +94,44 @@ export const workflow: WorkflowSchema = {
       outputs: [{ id: "sequence", type: "Sequence" }],
     },
     {
-      id: "analysis",
-      type: "BioconductorWorker",
+      id: "mafft",
+      type: "MAFFTWorker",
       inputs: [{ id: "sequence", type: "Sequence" }],
       outputs: [{ id: "result", type: "AnalysisResult" }],
     },
+    {
+      id: "clustalo",
+      type: "ClustalOWorker",
+      inputs: [{ id: "sequence", type: "Sequence" }],
+      outputs: [{ id: "result", type: "AnalysisResult" }],
+    },
+    {
+      id: "clustalw",
+      type: "ClustalWWorker",
+      inputs: [{ id: "sequence", type: "Sequence" }],
+      outputs: [{ id: "result", type: "AnalysisResult" }],
+    },
+    // {
+    //   id: "kalign",
+    //   type: "KalignWorker",
+    //   inputs: [{ id: "sequence", type: "Sequence" }],
+    //   outputs: [{ id: "result", type: "AnalysisResult" }],
+    // },
+
+    // {
+    //   id: "filewriter",
+    //   type: "FileWriterWorker",
+    //   inputs: [{ id: "sequence", type: "Sequence" }],
+    //   outputs: [{ id: "result", type: "AnalysisResult" }],
+    // },
   ],
   connections: [
-    {
-      sourceNode: "reader",
-      sourcePort: "sequence",
-      targetNode: "analysis",
-      targetPort: "sequence",
-    },
+    // {
+    //   sourceNode: "reader",
+    //   sourcePort: "sequence",
+    //   targetNode: "analysis",
+    //   targetPort: "sequence",
+    // },
   ],
 };
 

@@ -7,9 +7,34 @@ interface WorkflowEditorProps {
   onTransfer: () => void;
 }
 
-const nodeTypes = ["SequenceReader", "AlignmentWorker", "ParserWorker"];
+// const nodeTypes = ["SequenceReader", "MAFFTWorker", "ClustalWWorker", "ClustalOWorker", "KalignWorker", "FileWriterWorker"];
+const nodeTypes = ["SequenceReader","MAFFTWorker", "ClustalOWorker", "ClustalWWorker"];
+
 
 export function WorkflowEditor({ workflow, onChange, onTransfer }: WorkflowEditorProps) {
+  const syncPorts = (connections: ConnectionSchema[]) => {
+    const portsByNode = new Map<string, { inputs: Set<string>; outputs: Set<string> }>();
+    workflow.nodes.forEach((node) => portsByNode.set(node.id, { inputs: new Set(), outputs: new Set() }));
+
+    connections.forEach((connection) => {
+      portsByNode.get(connection.sourceNode)?.outputs.add(connection.sourcePort);
+      portsByNode.get(connection.targetNode)?.inputs.add(connection.targetPort);
+    });
+
+    return workflow.nodes.map((node) => {
+      const ports = portsByNode.get(node.id);
+      return {
+        ...node,
+        inputs: [...(ports?.inputs ?? [])].map((id) => ({ id, type: "unknown" })),
+        outputs: [...(ports?.outputs ?? [])].map((id) => ({ id, type: "unknown" })),
+      };
+    });
+  };
+
+  const updateWorkflowConnections = (connections: ConnectionSchema[]) => {
+    onChange({ ...workflow, nodes: syncPorts(connections), connections });
+  };
+
   const updateNode = (nodeId: string, patch: Partial<NodeSchema>) => {
     const nextId = patch.id ?? nodeId;
     onChange({
@@ -32,11 +57,12 @@ export function WorkflowEditor({ workflow, onChange, onTransfer }: WorkflowEdito
   };
 
   const removeNode = (nodeId: string) => {
+    const connections = workflow.connections.filter(
+      (connection) => connection.sourceNode !== nodeId && connection.targetNode !== nodeId,
+    );
     onChange({
-      nodes: workflow.nodes.filter((node) => node.id !== nodeId),
-      connections: workflow.connections.filter(
-        (connection) => connection.sourceNode !== nodeId && connection.targetNode !== nodeId,
-      ),
+      nodes: syncPorts(connections).filter((node) => node.id !== nodeId),
+      connections,
     });
   };
 
@@ -51,16 +77,13 @@ export function WorkflowEditor({ workflow, onChange, onTransfer }: WorkflowEdito
       targetNode: target.id,
       targetPort: target.inputs[0]?.id ?? "input",
     };
-    onChange({ ...workflow, connections: [...workflow.connections, connection] });
+    updateWorkflowConnections([...workflow.connections, connection]);
   };
 
   const updateConnection = (index: number, patch: Partial<ConnectionSchema>) => {
-    onChange({
-      ...workflow,
-      connections: workflow.connections.map((connection, itemIndex) =>
-        itemIndex === index ? { ...connection, ...patch } : connection,
-      ),
-    });
+    updateWorkflowConnections(workflow.connections.map((connection, itemIndex) =>
+      itemIndex === index ? { ...connection, ...patch } : connection,
+    ));
   };
 
   return (

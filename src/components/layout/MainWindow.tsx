@@ -136,6 +136,7 @@ export function MainWindow(props: MainWindowProps) {
               </div>
               <span className="task-state">Completed</span>
             </div>
+            <div>aaaaaaaaaaaaaaaaaaaaaaaaaaaaa</div>
             <WorkflowMonitor workflowId={props.workflowId} />
           </div>
         </main>
