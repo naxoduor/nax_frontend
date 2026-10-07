@@ -1,0 +1,154 @@
+.msa-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+.msa-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.msa-toolbar h2 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.msa-toolbar span,
+.msa-selection,
+.msa-footer {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.msa-selection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.msa-selection button {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.msa-scroll {
+  flex: 1;
+  overflow: auto;
+}
+
+.msa-grid {
+  min-width: max-content;
+}
+
+.msa-header,
+.msa-row {
+  display: flex;
+  min-height: 28px;
+}
+
+.msa-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f3f4f6;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.msa-name-header,
+.msa-name {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  flex: 0 0 180px;
+  width: 180px;
+  box-sizing: border-box;
+}
+
+.msa-name-header {
+  z-index: 3;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.msa-name {
+  overflow: hidden;
+  padding: 5px 10px;
+  border: 0;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
+  color: #374151;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.msa-name.selected {
+  background: #dbeafe;
+  font-weight: 600;
+}
+
+.msa-ruler,
+.msa-residues {
+  display: flex;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+}
+
+.msa-position,
+.msa-cell {
+  display: inline-flex;
+  flex: 0 0 20px;
+  width: 20px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+}
+
+.msa-position {
+  color: #6b7280;
+  font-size: 10px;
+}
+
+.msa-cell {
+  height: 28px;
+  border-right: 1px solid rgb(255 255 255 / 45%);
+  border-bottom: 1px solid rgb(255 255 255 / 45%);
+  color: #1f2937;
+}
+
+.msa-row:hover .msa-name {
+  background: #eff6ff;
+}
+
+.msa-footer {
+  padding: 9px 12px;
+  border-top: 1px solid #d1d5db;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msa-message,
+.msa-error {
+  padding: 20px;
+}
+
+.msa-error {
+  color: #b91c1c;
+}

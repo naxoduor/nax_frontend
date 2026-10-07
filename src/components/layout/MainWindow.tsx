@@ -7,6 +7,8 @@ import { StatusBar } from "./StatusBar";
 import { AlignmentViewer } from "../alignment/AlignmentViewer";
 import { WorkflowMonitor } from "../workflow/WorkflowMonitor";
 import { WorkflowEditor } from "../workflow/WorkflowEditor";
+import MsaViewerTwo from "../viewer/MsaViewerTwo";
+import MsaViewer from "../viewer/MsaViewer";
 
 interface MainWindowProps {
   darkMode: boolean;
@@ -107,7 +109,8 @@ export function MainWindow(props: MainWindowProps) {
           </div>
 
           {props.workflowOpen ? (
-            <WorkflowEditor workflow={props.workflow} onChange={props.onWorkflowChange} onTransfer={props.onTransferWorkflow} />
+            <MsaViewerTwo file="file" />
+            // <WorkflowEditor workflow={props.workflow} onChange={props.onWorkflowChange} onTransfer={props.onTransferWorkflow} />
           ) : <AlignmentViewer
             sequences={props.sequences}
             selectedSequenceIds={props.selectedSequenceIds}
