@@ -39,6 +39,19 @@ export const api = {
   getAlignment: (id: string) =>
     request<Sequence[]>(`/alignments/${encodeURIComponent(id)}`),
 
+  downloadWorkflowFile: async (fileNameOrUrl: string) => {
+    const url = /^https?:\/\//i.test(fileNameOrUrl) || fileNameOrUrl.startsWith("/")
+      ? fileNameOrUrl
+      : `${API_BASE_URL}/workflows/files/${encodeURIComponent(fileNameOrUrl)}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`File download failed: ${response.status}`);
+    }
+
+    return response.text();
+  },
+
   createAlignment: (sequenceIds: string[], options: AlignmentOptions) =>
     request<{ taskId: string }>("/alignments", {
       method: "POST",
@@ -73,7 +86,9 @@ export const api = {
     return response.json() as Promise<UgeneSchemaTransferResponse>;
   },
 
-  transferWorkflowSchema: async (payload: WorkflowSchema) => {
+  transferWorkflowSchema: async (
+    payload: WorkflowSchema,
+  ): Promise<WorkflowTransferResponse> => {
     console.log("send payload to backeend", payload)
     const response = await fetch(`${API_BASE_URL}/workflows`, {
       method: "POST",
@@ -86,6 +101,37 @@ export const api = {
     if (!response.ok) {
       throw new Error(`API request failed: ${response.status}`);
     }
+
+    const responseText = await response.text();
+    let body: unknown = undefined;
+
+    if (responseText.trim()) {
+      try {
+        body = JSON.parse(responseText) as unknown;
+      } catch {
+        body = responseText.trim();
+      }
+    }
+
+    if (typeof body === "string") {
+      return { status: "accepted", taskId: body } satisfies WorkflowTransferResponse;
+    }
+
+    const responseBody = body && typeof body === "object"
+      ? body as WorkflowTransferResponse
+      : {};
+    const headerId = response.headers.get("X-Task-Id")
+      ?? response.headers.get("X-Workflow-Id")
+      ?? response.headers.get("Location")?.split("/").filter(Boolean).pop();
+
+    return {
+      status: responseBody.status ?? "accepted",
+      ...responseBody,
+      taskId: responseBody.taskId
+        ?? responseBody.workflowId
+        ?? responseBody.id
+        ?? headerId,
+    };
   },
     // request<WorkflowTransferResponse>("/ugene/schema/transfer", {
     //   method: "POST",

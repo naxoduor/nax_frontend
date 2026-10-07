@@ -1,4 +1,5 @@
 import type { AppStatus, ProjectNode, Sequence, SelectionRange, WorkflowSchema } from "../../types/bioinformatics"
+import type { WorkflowEvent } from "../../services/workflowSocket";
 import { MenuBar } from "./MenuBar";
 import { ToolBar } from "./ToolBar";
 import { SidePanel } from "./SidePanel";
@@ -43,6 +44,8 @@ interface MainWindowProps {
   onWorkflowChange: (workflow: WorkflowSchema) => void;
   onAction: (message: string) => void;
   onOpenInspector: () => void;
+  onWorkflowEvent: (event: WorkflowEvent) => void;
+  onFileEventClick: (event: WorkflowEvent) => void;
 }
 
 export function MainWindow(props: MainWindowProps) {
@@ -131,13 +134,19 @@ export function MainWindow(props: MainWindowProps) {
                 <strong>BRCA1_MSA.aln</strong>
                 <span>Alignment workspace loaded</span>
               </div>
+              <div>
+                
+              </div>
               <div className="task-progress">
                 <div className="progress-fill" />
               </div>
               <span className="task-state">Completed</span>
             </div>
-            <div>aaaaaaaaaaaaaaaaaaaaaaaaaaaaa</div>
-            <WorkflowMonitor workflowId={props.workflowId} />
+            <WorkflowMonitor
+              workflowId={props.workflowId}
+              onEvent={props.onWorkflowEvent}
+              onFileEventClick={props.onFileEventClick}
+            />
           </div>
         </main>
 

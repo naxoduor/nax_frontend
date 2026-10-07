@@ -20,6 +20,9 @@ export interface ProjectNode {
   label: string;
   type: ProjectNodeType;
   children?: ProjectNode[];
+  sequenceContent?: string;
+  downloadUrl?: string;
+  workflowFile?: boolean;
 }
 
 export interface SelectionRange {
@@ -82,6 +85,8 @@ export interface WorkflowSchema {
 export interface WorkflowTransferResponse {
   status: "completed" | "accepted";
   taskId?: string;
+  workflowId?: string;
+  id?: string;
   message?: string;
 }
 
@@ -118,12 +123,12 @@ export const workflow: WorkflowSchema = {
     //   outputs: [{ id: "result", type: "AnalysisResult" }],
     // },
 
-    // {
-    //   id: "filewriter",
-    //   type: "FileWriterWorker",
-    //   inputs: [{ id: "sequence", type: "Sequence" }],
-    //   outputs: [{ id: "result", type: "AnalysisResult" }],
-    // },
+    {
+      id: "filewriter",
+      type: "FileWriterWorker",
+      inputs: [{ id: "sequence", type: "Sequence" }],
+      outputs: [{ id: "result", type: "AnalysisResult" }],
+    },
   ],
   connections: [
     // {

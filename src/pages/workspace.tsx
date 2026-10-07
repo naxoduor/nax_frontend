@@ -5,6 +5,7 @@ import { AnalysisDialog } from "../components/dialogs/AnalysisDialog";
 import { initialProjectState } from "../store/projectStore";
 import { simulateAlignment, gcContent } from "../services/alignment";
 import { api, isBackendConfigured } from "../services/api";
+import type { WorkflowEvent } from "../services/workflowSocket";
 import { workflow as initialWorkflow } from "../types/bioinformatics";
 import type {
   AlignmentOptions,
@@ -69,6 +70,96 @@ function parseSequenceFile(content: string, fileName: string): Sequence[] {
   if (current) records.push(current);
 
   return records;
+}
+
+function getWorkflowFile(event: WorkflowEvent) {
+  const data = event.data;
+  const eventPayload = event as WorkflowEvent & Record<string, unknown>;
+  const payload = data && typeof data === "object"
+    ? data as Record<string, unknown>
+    : {};
+  const nestedFile = payload.file && typeof payload.file === "object"
+    ? payload.file as Record<string, unknown>
+    : {};
+  const stringData = typeof data === "string" ? data.trim() : undefined;
+  const messageFileName = event.message?.match(/[^\s/]+\.[a-z0-9]+$/i)?.[0];
+  const fileName = [
+    payload.fileName,
+    payload.filename,
+    nestedFile.fileName,
+    nestedFile.filename,
+    eventPayload.fileName,
+    eventPayload.filename,
+    eventPayload.fileName,
+    messageFileName,
+    stringData && !stringData.includes(">") && !stringData.includes("@") ? stringData : undefined]
+    .find((value): value is string => typeof value === "string" && value.length > 0);
+  const content = [payload.content, nestedFile.content, eventPayload.content]
+    .find((value): value is string => typeof value === "string" && value.trim().length > 0)
+    ?? (typeof data === "string" && (data.includes(">") || data.includes("@"))
+      ? data
+      : undefined);
+  const downloadUrl = [
+    payload.downloadUrl,
+    payload.url,
+    payload.fileUrl,
+    nestedFile.downloadUrl,
+    nestedFile.url,
+    nestedFile.fileUrl,
+    eventPayload.downloadUrl,
+    eventPayload.url,
+    eventPayload.fileUrl,
+  ]
+    .find((value): value is string => typeof value === "string" && value.length > 0);
+
+  const urlFileName = downloadUrl?.split(/[/?#]/).filter(Boolean).pop();
+  const resolvedFileName = fileName ?? urlFileName ?? (content ? "workflow-result.fasta" : undefined);
+
+  return resolvedFileName ? {
+    fileName: resolvedFileName,
+    content,
+    downloadUrl,
+  } : null;
+}
+
+function getWorkflowMessage(event: WorkflowEvent) {
+  if (event.message) return event.message;
+  if (typeof event.data === "string") return event.data;
+  if (event.data === undefined) return event.type;
+
+  try {
+    return JSON.stringify(event.data);
+  } catch {
+    return event.type;
+  }
+}
+
+function getWorkflowTransferId(response: {
+  taskId?: string;
+  workflowId?: string;
+  id?: string;
+  task_id?: string;
+  workflow_id?: string;
+  data?: unknown;
+  result?: unknown;
+}) {
+  const nested = [response.data, response.result].find(
+    (value): value is Record<string, unknown> =>
+      Boolean(value) && typeof value === "object",
+  );
+  const nestedRecord = nested ?? {};
+  const id = response.taskId
+    ?? response.workflowId
+    ?? response.id
+    ?? response.task_id
+    ?? response.workflow_id
+    ?? nestedRecord.taskId
+    ?? nestedRecord.workflowId
+    ?? nestedRecord.id
+    ?? nestedRecord.task_id
+    ?? nestedRecord.workflow_id;
+
+  return typeof id === "string" && id.length > 0 ? id : undefined;
 }
 
 export function Workspace() {
@@ -237,9 +328,11 @@ export function Workspace() {
     try {
       console.log("Sending workflowDraft to backend", workflowDraft);
       const response = await api.transferWorkflowSchema(workflowDraft);
-      if (response.taskId) setWorkflowId(response.taskId);
-      const message = response.taskId
-        ? `Workflow task ${response.taskId} accepted by backend`
+      console.log("Workflow transfer response", response);
+      const returnedWorkflowId = getWorkflowTransferId(response);
+      if (returnedWorkflowId) setWorkflowId(returnedWorkflowId);
+      const message = returnedWorkflowId
+        ? `Workflow task ${returnedWorkflowId} accepted by backend`
         : response.message ?? "Workflow transferred to Java backend";
 
       setStatus(message, "success");
@@ -296,6 +389,103 @@ export function Workspace() {
     }
   };
 
+  const handleWorkflowEvent = useCallback((event: WorkflowEvent) => {
+    const file = getWorkflowFile(event);
+    const node: ProjectNode = file
+      ? {
+          id: `workflow-file-${file.fileName}`,
+          label: file.fileName,
+          type: "sequence",
+          sequenceContent: file.content,
+          downloadUrl: file.downloadUrl,
+          workflowFile: true,
+        }
+      : {
+          id: `workflow-message-${event.timestamp}-${event.type}`,
+          label: `${event.type}: ${getWorkflowMessage(event)}`,
+          type: "alignment",
+        };
+    const targetFolderId = file ? "sequences" : "results";
+
+    setExpanded((current) => ({
+      ...current,
+      [targetFolderId]: true,
+    }));
+
+    setState((current) => ({
+      ...current,
+      projectTree: current.projectTree.map((project) =>
+        project.id !== "project"
+          ? project
+          : {
+              ...project,
+              children: project.children?.map((child) =>
+                child.id !== targetFolderId
+                  ? child
+                  : {
+                      ...child,
+                      children: [
+                        ...(child.children ?? []).filter((item) => item.id !== node.id),
+                        node,
+                      ],
+                    },
+              ),
+            },
+      ),
+      status: {
+        message: file
+          ? `${file.fileName} returned by workflow`
+          : `WebSocket message received: ${getWorkflowMessage(event)}`,
+        kind: "success",
+      },
+    }));
+  }, []);
+
+  const handleSequenceFileNode = async (node: ProjectNode) => {
+    if (node.type !== "sequence" || !node.workflowFile) {
+      handleAction(`Selected ${node.label}`);
+      return;
+    }
+
+    try {
+      const content = node.sequenceContent
+        ?? await api.downloadWorkflowFile(node.downloadUrl ?? node.label);
+      const sequences = parseSequenceFile(content, node.label);
+      if (!sequences.length) throw new Error(`No sequences found in ${node.label}`);
+
+      const download = document.createElement("a");
+      download.href = URL.createObjectURL(new Blob([content], { type: "text/plain" }));
+      download.download = node.label;
+      document.body.appendChild(download);
+      download.click();
+      download.remove();
+      window.setTimeout(() => URL.revokeObjectURL(download.href), 0);
+
+      setState((current) => ({
+        ...current,
+        sequences,
+        selectedSequenceIds: [sequences[0].id],
+        status: { message: `${node.label} loaded`, kind: "success" },
+      }));
+    } catch (error) {
+      handleAction(error instanceof Error ? error.message : `Failed to load ${node.label}`);
+    }
+  };
+
+  const handleWorkflowFileEventClick = (event: WorkflowEvent) => {
+    const file = getWorkflowFile(event);
+    if (!file) return;
+
+    void handleSequenceFileNode({
+      id: `workflow-file-${file.fileName}`,
+      label: file.fileName,
+      type: "sequence",
+      sequenceContent: file.content,
+      downloadUrl: file.downloadUrl,
+      workflowFile: true,
+    });
+  };
+
   const handleImport = () => {
     setState((current) => ({ ...current, activeDialog: "open" }));
   };
@@ -334,7 +524,10 @@ export function Workspace() {
         onToggleExpanded={(id) =>
           setExpanded((current) => ({ ...current, [id]: !current[id] }))
         }
-        onSelectProjectNode={handleProjectNode}
+        onSelectProjectNode={(node) => {
+          void handleSequenceFileNode(node);
+          if (node.type !== "sequence") handleProjectNode(node);
+        }}
         onSelectSequence={handleSelectSequence}
         onSelectionChange={(selection: SelectionRange) =>
           setState((current) => ({ ...current, selection }))
@@ -363,6 +556,8 @@ export function Workspace() {
         onWorkflowChange={setWorkflowDraft}
         onAction={handleAction}
         onOpenInspector={() => setInspectorOpen(true)}
+        onWorkflowEvent={handleWorkflowEvent}
+        onFileEventClick={handleWorkflowFileEventClick}
       />
 
       {state.activeDialog === "open" && (

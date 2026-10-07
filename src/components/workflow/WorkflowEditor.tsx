@@ -8,7 +8,7 @@ interface WorkflowEditorProps {
 }
 
 // const nodeTypes = ["SequenceReader", "MAFFTWorker", "ClustalWWorker", "ClustalOWorker", "KalignWorker", "FileWriterWorker"];
-const nodeTypes = ["SequenceReader","MAFFTWorker", "ClustalOWorker", "ClustalWWorker"];
+const nodeTypes = ["SequenceReader","MAFFTWorker", "ClustalOWorker", "ClustalWWorker", "FileWriterWorker"];
 
 
 export function WorkflowEditor({ workflow, onChange, onTransfer }: WorkflowEditorProps) {
