@@ -1,4 +1,5 @@
 import type { Sequence, SelectionRange } from "../../types/bioinformatics";
+import { Ruler } from "./Ruler";
 import { SequenceHeader } from "./SequenceHeader";
 
 interface SequenceRowProps {
@@ -35,22 +36,31 @@ export function SequenceRow({
         onClick={onSelectSequence}
       />
 
-      <div className="bases">
-        {[...sequence.sequence].map((character, index) => (
-          <button
-            key={`${sequence.id}-${index}`}
-            className={`base base-${character.toUpperCase()} ${
-              index + 1 >= selection.start && index + 1 <= selection.end
-                ? "selected"
-                : ""
-            } ${showGrid ? "grid" : ""}`}
-            style={{ width: charWidth }}
-            onClick={() => onColumnClick(index + 1)}
-            title={`${sequence.id}:${index + 1}`}
-          >
-            {character}
-          </button>
-        ))}
+      <div className="sequence-track">
+        <Ruler
+          columns={sequence.sequence.length}
+          charWidth={charWidth}
+          onColumnClick={onColumnClick}
+          compact
+        />
+
+        <div className="bases">
+          {[...sequence.sequence].map((character, index) => (
+            <button
+              key={`${sequence.id}-${index}`}
+              className={`base base-${character.toUpperCase()} ${
+                index + 1 >= selection.start && index + 1 <= selection.end
+                  ? "selected"
+                  : ""
+              } ${showGrid ? "grid" : ""}`}
+              style={{ width: charWidth }}
+              onClick={() => onColumnClick(index + 1)}
+              title={`${sequence.id}:${index + 1}`}
+            >
+              {character}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

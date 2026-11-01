@@ -58,4 +58,4 @@ export function SequenceViewer({
       </div>
     </div>
   );
-}''',
+}

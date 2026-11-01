@@ -27,6 +27,7 @@ interface MainWindowProps {
   workflowId?: string;
   workflow: WorkflowSchema;
   workflowOpen: boolean;
+  onOpenWorkflowPage: () => void;
   onToggleTheme: () => void;
   onToggleSidebar: () => void;
   onToggleInspector: () => void;
@@ -59,6 +60,7 @@ export function MainWindow(props: MainWindowProps) {
         darkMode={props.darkMode}
         sidebarOpen={props.sidebarOpen}
         inspectorOpen={props.inspectorOpen}
+        onOpenWorkflowPage={props.onOpenWorkflowPage}
         onToggleTheme={props.onToggleTheme}
         onToggleSidebar={props.onToggleSidebar}
         onToggleInspector={props.onToggleInspector}

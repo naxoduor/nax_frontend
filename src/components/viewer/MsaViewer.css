@@ -60,6 +60,60 @@
   min-height: 28px;
 }
 
+.msa-row {
+  margin-bottom: 8px;
+}
+
+.msa-track {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.msa-row-ruler {
+  position: relative;
+  display: flex;
+  height: 5px;
+  border-top: 1px solid #cbd5e1;
+  background: transparent;
+}
+
+.msa-row-position {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 100%;
+  font-size: 8px;
+  color: #64748b;
+  line-height: 1;
+}
+  
+.msa-row-position::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 3px;
+  background: rgba(100, 116, 139, 0.85);
+  transform: translateX(-50%);
+}
+
+.msa-row-position::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: #64748b;
+  transform: translate(-50%, 0);
+}
+
 .msa-header {
   position: sticky;
   top: 0;

@@ -8,6 +8,7 @@ import type {
   WorkflowSchema,
   WorkflowTransferResponse,
 } from "../types/bioinformatics"
+import type { WorkflowFile } from "../types"
 
 // const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 const API_BASE_URL = "http://localhost:8080/api"; // Hardcoded for local development
@@ -28,6 +29,55 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   return response.json() as Promise<T>;
+}
+
+async function submitWorkflow(
+  payload: WorkflowSchema | WorkflowFile,
+): Promise<WorkflowTransferResponse> {
+  const response = await fetch(`${API_BASE_URL}/workflows`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  const responseText = await response.text();
+  let body: unknown = undefined;
+
+  if (responseText.trim()) {
+    try {
+      body = JSON.parse(responseText) as unknown;
+    } catch {
+      body = responseText.trim();
+    }
+  }
+
+  if (typeof body === "string") {
+    return { status: "accepted", taskId: body } satisfies WorkflowTransferResponse;
+  }
+
+  const responseBody =
+    body && typeof body === "object"
+      ? (body as Partial<WorkflowTransferResponse>)
+      : {};
+  const headerId = response.headers.get("X-Task-Id")
+    ?? response.headers.get("X-Workflow-Id")
+    ?? response.headers.get("Location")?.split("/").filter(Boolean).pop();
+
+  return {
+    status: responseBody.status ?? "accepted",
+    ...responseBody,
+    taskId:
+      responseBody.taskId ??
+      responseBody.workflowId ??
+      responseBody.id ??
+      headerId,
+  } satisfies WorkflowTransferResponse;
 }
 
 export const api = {
@@ -90,49 +140,9 @@ export const api = {
     payload: WorkflowSchema,
   ): Promise<WorkflowTransferResponse> => {
     console.log("send payload to backeend", payload)
-    const response = await fetch(`${API_BASE_URL}/workflows`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
-    }
-
-    const responseText = await response.text();
-    let body: unknown = undefined;
-
-    if (responseText.trim()) {
-      try {
-        body = JSON.parse(responseText) as unknown;
-      } catch {
-        body = responseText.trim();
-      }
-    }
-
-    if (typeof body === "string") {
-      return { status: "accepted", taskId: body } satisfies WorkflowTransferResponse;
-    }
-
-    const responseBody = body && typeof body === "object"
-      ? body as WorkflowTransferResponse
-      : {};
-    const headerId = response.headers.get("X-Task-Id")
-      ?? response.headers.get("X-Workflow-Id")
-      ?? response.headers.get("Location")?.split("/").filter(Boolean).pop();
-
-    return {
-      status: responseBody.status ?? "accepted",
-      ...responseBody,
-      taskId: responseBody.taskId
-        ?? responseBody.workflowId
-        ?? responseBody.id
-        ?? headerId,
-    };
+    return submitWorkflow(payload);
   },
+  runWorkflow: (payload: WorkflowFile) => submitWorkflow(payload),
     // request<WorkflowTransferResponse>("/ugene/schema/transfer", {
     //   method: "POST",
     //   body: JSON.stringify(payload),

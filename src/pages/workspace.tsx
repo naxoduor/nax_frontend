@@ -162,7 +162,7 @@ function getWorkflowTransferId(response: {
   return typeof id === "string" && id.length > 0 ? id : undefined;
 }
 
-export function Workspace() {
+export function Workspace({ onOpenWorkflowPage }: { onOpenWorkflowPage: () => void }) {
   const [state, setState] = useState(initialProjectState);
   const [workflowId, setWorkflowId] = useState<string>();
   const [workflowDraft, setWorkflowDraft] = useState<WorkflowSchema>(initialWorkflow);
@@ -513,6 +513,7 @@ export function Workspace() {
         workflowId={workflowId}
         workflow={workflowDraft}
         workflowOpen={workflowOpen}
+        onOpenWorkflowPage={onOpenWorkflowPage}
         onToggleTheme={() =>
           setState((current) => ({
             ...current,

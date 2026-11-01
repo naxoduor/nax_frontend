@@ -77,6 +77,7 @@ export interface ConnectionSchema {
   targetPort: string;
 }
 
+
 export interface WorkflowSchema {
   nodes: NodeSchema[];
   connections: ConnectionSchema[];
@@ -138,6 +139,7 @@ export const workflow: WorkflowSchema = {
     //   targetPort: "sequence",
     // },
   ],
+  
 };
 
 export interface AppStatus {

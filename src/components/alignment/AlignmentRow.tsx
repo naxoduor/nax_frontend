@@ -1,4 +1,5 @@
-    import { SequenceHeader } from "../sequence/SequenceHeader";
+import type { Sequence, SelectionRange } from "../../types/bioinformatics";
+import { SequenceHeader } from "../sequence/SequenceHeader";
 
 interface AlignmentRowProps {
   sequence: Sequence;

@@ -116,7 +116,12 @@ button {
   align-items: center;
 }
 
-.menu button {
+.menu-item {
+  position: relative;
+}
+
+.menu-trigger,
+.submenu-item {
   background: transparent;
   border: 0;
   padding: 7px 9px;
@@ -129,8 +134,49 @@ button {
   cursor: pointer;
 }
 
-.menu button:hover {
+.menu-trigger:hover,
+.submenu-item:hover,
+.menu-item:hover > .menu-trigger,
+.menu-item:focus-within > .menu-trigger {
   background: #222933;
+  color: #fff;
+}
+
+.submenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 180px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  display: none;
+  background: #141b24;
+  border: 1px solid #2b3748;
+  border-radius: 8px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.26);
+  z-index: 20;
+}
+
+.menu-item:hover .submenu,
+.menu-item:focus-within .submenu {
+  display: block;
+}
+
+.submenu li {
+  margin: 0;
+}
+
+.submenu-item {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 8px 10px;
+  border-radius: 5px;
+  color: #dfe6ef;
+}
+
+.submenu-item:hover {
+  background: #1d2a39;
   color: #fff;
 }
 
@@ -1771,10 +1817,33 @@ button { color: inherit; }
 .ruler-label:hover { color: #aab7c7; background: #202833; }
 
 .sequence-row {
-  height: 31px;
+  height: auto;
   display: flex;
   min-width: max-content;
 }
+.sequence-track {
+  display: flex;
+  flex-direction: column;
+}
+.ruler-compact {
+  position: relative;
+  top: auto;
+  z-index: 1;
+  height: 14px;
+  border-bottom: 1px solid #2c3540;
+  background: #171d24;
+}
+.light .ruler-compact { border-color: #dfe4ea; background: #f4f7fa; }
+.ruler-label-compact {
+  top: 0;
+  height: 14px;
+  font-size: 7px;
+  color: #647082;
+  border-left: 1px solid #2c3540;
+  background: transparent;
+  padding: 0 2px;
+}
+.light .ruler-label-compact { border-color: #dfe4ea; color: #647082; }
 .row-label {
   position: sticky;
   left: 0;

@@ -77,7 +77,8 @@ export function WorkflowEditor({ workflow, onChange, onTransfer }: WorkflowEdito
       targetNode: target.id,
       targetPort: target.inputs[0]?.id ?? "input",
     };
-    updateWorkflowConnections([...workflow.connections, connection]);
+
+        updateWorkflowConnections([...workflow.connections, connection]);
   };
 
   const updateConnection = (index: number, patch: Partial<ConnectionSchema>) => {
@@ -92,7 +93,9 @@ export function WorkflowEditor({ workflow, onChange, onTransfer }: WorkflowEdito
         <div>
           <div className="eyebrow">PIPELINE DESIGNER</div>
           <h1>Build a workflow</h1>
-          <p>Compose sequence tools into a reproducible analysis pipeline.</p>
+          <p>Compose sequence t
+            
+            ools into a reproducible analysis pipeline.</p>
         </div>
         <div className="workflow-actions">
           <button className="workflow-button" onClick={addNode}><Plus size={15} /> Add step</button>

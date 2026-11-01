@@ -46,8 +46,8 @@ export default function MsaViewerTwo({ file }: Props) {
         setAlignment
          ({
   alignmentName: "aaa",
-  sequenceCount: 5,
-  alignmentLength: 5,
+  sequenceCount: 10,
+  alignmentLength: 100,
   sequences: [
         {
           id: "seq1",
@@ -190,20 +190,34 @@ export default function MsaViewerTwo({ file }: Props) {
                 {sequence.name}
               </button>
 
-              <div className="msa-residues">
-                {Array.from(sequence.residues).map((residue, index) => (
-                  <span
-                    key={`${sequence.id}-${index}`}
-                    className="msa-cell"
-                    style={{
-                      backgroundColor:
-                        residueColors[residue] ?? "#f3f4f6",
-                    }}
-                    title={`${sequence.name}, position ${index + 1}: ${residue}`}
-                  >
-                    {residue}
-                  </span>
-                ))}
+              <div className="msa-track">
+                <div className="msa-row-ruler">
+                  {positions.map((position) => (
+                    <span
+                      className="msa-row-position"
+                      key={`${sequence.id}-ruler-${position}`}
+                      title={`Position ${position}`}
+                    >
+                      {position % 5 === 0 ? position : ""}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="msa-residues">
+                  {Array.from(sequence.residues).map((residue, index) => (
+                    <span
+                      key={`${sequence.id}-${index}`}
+                      className="msa-cell"
+                      style={{
+                        backgroundColor:
+                          residueColors[residue] ?? "#f3f4f6",
+                      }}
+                      title={`${sequence.name}, position ${index + 1}: ${residue}`}
+                    >
+                      {residue}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
